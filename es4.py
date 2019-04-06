@@ -53,27 +53,30 @@ def removeTask(bot, update, args):
         update.message.reply_text("No such element")
     conn.close()
 
-"""
 def removeAllTasks(bot, update, args):
     sub=" ".join(args)
-    lung=len(lista)
-    eliminati=0
-    messaggio="The elements "
-    i = 0
-    while i < lung:
-        if lista[i].find(sub) >= 0:
-            eliminati+=1
-            messaggio = messaggio + "\"" + lista[i] + "\" "
-            del lista[i]
-            i -= 1
-            lung -= 1
-        i += 1
-    messaggio = messaggio + "were removed"
-    if eliminati == 0:
+
+    conn = pymysql.connect(user='root', password='root',
+                           host='localhost', database='')
+    sql = "select todo from es4.tasks"
+    cursor = conn.cursor()
+    cursor.execute(sql)
+    result = cursor.fetchall()
+    cursor.close()
+
+    if len(result) == 0:
         update.message.reply_text("No element removed")
     else:
-        update.message.reply_text(messaggio)
-"""
+        sql = "delete from es4.tasks where todo like %s"
+        cursor = conn.cursor()
+        sub="%"+sub+"%"
+        cursor.execute(sql, (sub,))
+        conn.commit()
+        cursor.close()
+        update.message.reply_text("Elements removed successfully")
+
+    conn.close()
+
 def main():
 
     updater=Updater(sys.argv[1])
@@ -82,9 +85,7 @@ def main():
     dp.add_handler(CommandHandler("showTasks", showTasks))
     dp.add_handler(CommandHandler("newTask", newTask, pass_args=True))
     dp.add_handler(CommandHandler("removeTask", removeTask, pass_args=True))
-    """
     dp.add_handler(CommandHandler("removeAllTasks", removeAllTasks, pass_args=True))
-    """
 
     updater.start_polling()
 
